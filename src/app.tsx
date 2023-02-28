@@ -5,10 +5,15 @@ import {
 import preactLogo from './assets/preact.svg'
 import './app.css'
 import { 
-  fetchBooks,
   addBook,
-  deleteBook,
-} from './utils/firebase'
+  booksColRef,
+  deleteBook
+} from './utils/firebase/books'
+import { 
+  doc,
+  onSnapshot 
+} from 'firebase/firestore'
+import { db } from './utils/firebase'
 
 export function App() {
   
@@ -18,15 +23,30 @@ export function App() {
   const [id, setId] = useState('');
   const [idIsSetInitially, setIdIsSetInitially] = useState(false);
 
-  const callFetchBooks = () => {
-    fetchBooks().then((bookDocs: any[]) => {
-      setBooks(bookDocs);
-      if (idIsSetInitially === false) {
-        setId(bookDocs[0].id);
-        setIdIsSetInitially(true);
-      }
-    });
+  const fetchBooks = () => {
+    onSnapshot(booksColRef, (snapshot: any) => {
+        let booksResponse: any[] = [];
+        snapshot.docs.forEach((doc: any) => {
+            booksResponse.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        setBooks(booksResponse);
+        if (booksResponse.length >= 1 && idIsSetInitially === false) {
+          setId(booksResponse[0].id);
+          setIdIsSetInitially(true);
+        }
+    })
   }
+
+  // Get a Single Document
+  const getBook = async (id: string) => {
+    const docRef: any = doc(db, 'books', id);
+    onSnapshot(docRef, (doc: any) => {
+        console.log(doc.id, doc.data())
+    })
+  };
 
   const handleAddBook = (e: any) => {
     e.preventDefault();
@@ -37,7 +57,6 @@ export function App() {
     addBook(payload)
       .then(({success, errorInfo}: any) => {
         if (success) {
-          callFetchBooks();
           setTitle('');
           setAuthor('');
         } else {
@@ -51,11 +70,9 @@ export function App() {
     deleteBook(id)
       .then(({success, errorInfo}: any) => {
         if (success) {
-          callFetchBooks();
           if (books.length >= 1) {
             setId(books[0].id);
           }
-          alert('Deleted Successfully');
         } else {
           console.log(errorInfo);
         }
@@ -63,8 +80,14 @@ export function App() {
   }
 
   useEffect(() => {
-    callFetchBooks();
+    fetchBooks();
   }, [])
+
+  useEffect(() => {
+    if (books.length >= 1) {
+      getBook(books[0].id);
+    }
+  }, books)
 
   return (
     <>

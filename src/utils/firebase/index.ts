@@ -1,15 +1,9 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import {
-    collection,
-    getFirestore
-} from 'firebase/firestore';
-import { firebaseConstants } from "../constants";
 import { 
-    fetchBooks,
-    addBook,
-    deleteBook
-} from "./books";
+    initializeApp 
+} from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { firebaseConstants } from "../constants";
 
 const {
     API_KEY,
@@ -41,15 +35,7 @@ const app = initializeApp(firebaseConfig);
 // Initialize Services
 const db = getFirestore();
 
-// Collection Ref
-const booksColRef = collection(db, 'books');
-
 export {
-    db,
-    booksColRef,
-    /* BOOKS START */
-    fetchBooks,
-    addBook,
-    deleteBook
-    /* BOOKS END */
+    app,
+    db
 };

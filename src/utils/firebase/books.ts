@@ -1,37 +1,58 @@
 import { 
+    collection,
     addDoc, 
     getDocs,
+    getDoc,
     deleteDoc,
-    doc
+    doc,
+    query,
+    where, 
+    orderBy,
+    onSnapshot,
+    serverTimestamp
 } from "firebase/firestore";
-import { 
-    db,
-    booksColRef
+
+import {
+    app,
+    db
 } from ".";
 
-// Get Collection Data
-let books: any[] = [];
-const fetchBooks = async () => {
-    books = [];
-    await getDocs(booksColRef)
-        .then((snapshot: any) => {
-            snapshot.docs.forEach((doc: any) => {
-                books.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-        })
-        .catch(err => {
-            console.log(err.message);
-        })
-    return books;
-}
+app;
 
+// Collection Ref
+const booksColRef = collection(db, 'books');
+
+// Query Collection Data
+// const queryByCreatedAt = query(booksColRef, orderBy('createdAt', 'desc'));
+
+// Get Collection Data
+// let books: any[] = [];
+// const fetchBooks = async () => {
+//     books = [];
+//     await getDocs(queryByCreatedAt)
+//     // await getDocs(booksColRef)
+//         .then((snapshot: any) => {
+//             snapshot.docs.forEach((doc: any) => {
+//                 books.push({
+//                     id: doc.id,
+//                     ...doc.data()
+//                 });
+//             });
+//         })
+//         .catch(err => {
+//             console.log(err.message);
+//         })
+//     return books;
+// }
+
+// Add to Collection Data
 const addBook = async (payload: any) => {
     let success: boolean = false;
     let errorInfo: any;
-    await addDoc(booksColRef, payload)
+    await addDoc(booksColRef, {
+            ...payload,
+            createdAt: serverTimestamp()
+        })
         .then(() => {
             success = true;
         })
@@ -45,6 +66,7 @@ const addBook = async (payload: any) => {
     };
 };
 
+// Remove a Document
 const deleteBook = async (id: string) => {
     const docRef: any = doc(db, 'books', id);
     let success: boolean = false;
@@ -64,7 +86,7 @@ const deleteBook = async (id: string) => {
 };
 
 export {
-    fetchBooks,
     addBook,
     deleteBook,
+    booksColRef
 };
