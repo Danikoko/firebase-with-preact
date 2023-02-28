@@ -1,16 +1,70 @@
-import { useState } from 'preact/hooks'
+import { 
+  useEffect,
+  useState 
+} from 'preact/hooks'
 import preactLogo from './assets/preact.svg'
 import './app.css'
 import { 
-  app as firebaseApp, 
-  analytics,
-  getFirestore,
-  runSome
+  fetchBooks,
+  addBook,
+  deleteBook,
 } from './utils/firebase'
 
 export function App() {
-  runSome();
-  const [count, setCount] = useState(0)
+  
+  const [books, setBooks] = useState([] as any[]);
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [id, setId] = useState('');
+  const [idIsSetInitially, setIdIsSetInitially] = useState(false);
+
+  const callFetchBooks = () => {
+    fetchBooks().then((bookDocs: any[]) => {
+      setBooks(bookDocs);
+      if (idIsSetInitially === false) {
+        setId(bookDocs[0].id);
+        setIdIsSetInitially(true);
+      }
+    });
+  }
+
+  const handleAddBook = (e: any) => {
+    e.preventDefault();
+    const payload = {
+      title,
+      author
+    }
+    addBook(payload)
+      .then(({success, errorInfo}: any) => {
+        if (success) {
+          callFetchBooks();
+          setTitle('');
+          setAuthor('');
+        } else {
+          console.log(errorInfo);
+        }
+      });
+  }
+
+  const handleDeleteBook = (e: any) => {
+    e.preventDefault();
+    deleteBook(id)
+      .then(({success, errorInfo}: any) => {
+        if (success) {
+          callFetchBooks();
+          if (books.length >= 1) {
+            setId(books[0].id);
+          }
+          alert('Deleted Successfully');
+        } else {
+          console.log(errorInfo);
+        }
+      });
+  }
+
+  useEffect(() => {
+    callFetchBooks();
+  }, [])
 
   return (
     <>
@@ -22,18 +76,39 @@ export function App() {
           <img src={preactLogo} class="logo preact" alt="Preact logo" />
         </a>
       </div>
-      <h1>Vite + Preact</h1>
-      <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/app.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p class="read-the-docs">
-        Click on the Vite and Preact logos to learn more
-      </p>
+
+      <form method="POST" onSubmit={(e: any) => handleAddBook(e)}>
+        <div className="form-group">
+          <label for="book-title">Book Title</label>
+          <input onInput={(e: any) => setTitle(e.target.value)} value={title} type="text" id="book-title" name="book-title" required />
+        </div>
+        
+        <div className="form-group">
+          <label for="author-name">Author Name</label>
+          <input onInput={(e: any) => setAuthor(e.target.value)} value={author} type="text" id="author-name" name="author-name" required />
+        </div>
+        
+        <button className="submit-button" type="submit">Add Book</button>
+      </form>
+      
+      <form method="POST" onSubmit={(e: any) => handleDeleteBook(e)}>
+        <div className="form-group">
+          <label for="book-title">Document to Delete</label>
+          <select onChange={(e: any) => setId(e.target.value)} id="book-id" name="book-id" required>
+            {
+              books.map((book: any) => {
+                return (
+                  <option value={book.id} key={book.id}>
+                    { `${book.title} - ${book.author}` }
+                  </option>
+                )
+              })
+            }
+          </select>
+        </div>
+        
+        <button className="delete-button" type="submit">Delete Book</button>
+      </form>
     </>
   )
 }

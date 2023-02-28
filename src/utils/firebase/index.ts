@@ -1,12 +1,15 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import {
-    getFirestore,
     collection,
-    getDocs
+    getFirestore
 } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics";
-import { firebaseConstants } from "./constants";
+import { firebaseConstants } from "../constants";
+import { 
+    fetchBooks,
+    addBook,
+    deleteBook
+} from "./books";
 
 const {
     API_KEY,
@@ -39,33 +42,14 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 
 // Collection Ref
-const colRef = collection(db, 'books');
-
-// Get Collection Data
-let books: any[] = [];
-const runSome = () => {
-    getDocs(colRef)
-        .then((snapshot: any) => {
-            snapshot.docs.forEach((doc: any) => {
-                books.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-            console.log(books)
-        })
-        .catch(err => {
-            console.log(err.message);
-        })
-}
-
-// Initialize Analytics
-const analytics = getAnalytics(app);
+const booksColRef = collection(db, 'books');
 
 export {
-    app,
-    analytics,
-    getFirestore,
-    runSome,
-    books
+    db,
+    booksColRef,
+    /* BOOKS START */
+    fetchBooks,
+    addBook,
+    deleteBook
+    /* BOOKS END */
 };
