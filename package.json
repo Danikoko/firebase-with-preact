@@ -1,5 +1,5 @@
 {
-  "name": "firebase-preact-front-end",
+  "name": "firebase-with-preact",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "^9.17.1",
     "preact": "^10.11.3"
   },
   "devDependencies": {

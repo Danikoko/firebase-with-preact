@@ -1,8 +1,15 @@
 import { useState } from 'preact/hooks'
 import preactLogo from './assets/preact.svg'
 import './app.css'
+import { 
+  app as firebaseApp, 
+  analytics,
+  getFirestore,
+  runSome
+} from './utils/firebase'
 
 export function App() {
+  runSome();
   const [count, setCount] = useState(0)
 
   return (
