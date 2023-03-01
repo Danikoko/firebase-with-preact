@@ -20,7 +20,8 @@ import {
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from './utils/firebase'
 
@@ -46,15 +47,17 @@ export function App() {
   const [idToDelete, setIdToDelete] = useState('');
   const [idToDeleteIsSetInitially, setIdToDeleteIsSetInitially] = useState(false);
 
+  const unsubAuth = onAuthStateChanged(auth, (userObject: any) => {
+    setUser(userObject);
+  });
+
   const signUp = (e: any) => {
     e.preventDefault();
     createUserWithEmailAndPassword(auth, email, password)
-      .then((credential: any) => {
-        console.log(credential)
-        console.log('user created: ', credential.user)
+      .then((/*credential: any*/) => {
         setEmail('');
         setPassword('');
-        setUser(credential.user);
+        // setUser(credential.user); // This is no longer needed since we're listening to auth change in the function above this
       })
       .catch((error: any) => {
         console.log(error.message);
@@ -64,12 +67,10 @@ export function App() {
   const signIn = (e: any) => {
     e.preventDefault();
     signInWithEmailAndPassword(auth, email, password)
-      .then((credential: any) => {
-        console.log(credential)
-        console.log('user login: ', credential.user)
+      .then((/*credential: any*/) => {
         setLoginEmail('');
         setLoginPassword('');
-        setUser(credential.user);
+        // setUser(credential.user); // This is no longer needed since we're listening to auth change in the function above this
       })
       .catch((error: any) => {
         console.log(error.message);
@@ -79,9 +80,9 @@ export function App() {
   const signOutUser = (e: any) => {
     e.preventDefault();
     signOut(auth)
-      .then(() => {
-        setUser(null);
-      });
+      // .then(() => {
+      //   setUser(null);
+      // }); // This is no longer needed since we're listening to auth change in the function above this
   }
 
   const handleSetCurrentBook = (id: string, booksParam: any[] = books) => {
@@ -95,38 +96,35 @@ export function App() {
     setTitleForUpdate(value.title);
   }
   
-  const fetchBooks = () => {
-    //booksColRef
-    onSnapshot(queryBooksByCreatedAt, (snapshot: any) => {
-        let booksRes: any[] = [];
-        snapshot.docs.forEach((doc: any) => {
-            booksRes.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-        setBooks(booksRes);
-        if (booksRes.length >= 1 && idToUpdateIsSetInitially === false) {
-          setIdToUpdate(booksRes[0].id);
-          // getBook(booksRes[0].id);
-          setIdToUpdateIsSetInitially(true);
-          handleSetCurrentBook(booksRes[0].id, booksRes);
-        } else {
-          handleSetCurrentBook(idToUpdate, booksRes);
-        }
-        if (booksRes.length >= 1 && idToDeleteIsSetInitially === false) {
-          setIdToDelete(booksRes[0].id);
-          setIdToDeleteIsSetInitially(true);
-        }
-    })
-  }
+  //booksColRef
+  const unsubCol = onSnapshot(queryBooksByCreatedAt, (snapshot: any) => {
+      let booksRes: any[] = [];
+      snapshot.docs.forEach((doc: any) => {
+          booksRes.push({
+              id: doc.id,
+              ...doc.data()
+          });
+      });
+      setBooks(booksRes);
+      if (booksRes.length >= 1 && idToUpdateIsSetInitially === false) {
+        setIdToUpdate(booksRes[0].id);
+        // getBook(booksRes[0].id);
+        setIdToUpdateIsSetInitially(true);
+        handleSetCurrentBook(booksRes[0].id, booksRes);
+      } else {
+        handleSetCurrentBook(idToUpdate, booksRes);
+      }
+      if (booksRes.length >= 1 && idToDeleteIsSetInitially === false) {
+        setIdToDelete(booksRes[0].id);
+        setIdToDeleteIsSetInitially(true);
+      }
+  })
 
   // Get a Single Document
   // const getBook = (id: string) => {
   //   const docRef: any = doc(db, 'books', id);
   //   let bookRes = currentBook;
   //   onSnapshot(docRef, (doc: any) => {
-  //       console.log(doc.id, doc.data());
   //       bookRes = {
   //         id: doc.id,
   //         ...doc.data()
@@ -185,7 +183,11 @@ export function App() {
   }
 
   useEffect(() => {
-    fetchBooks();
+    return () => {
+      unsubCol();
+      unsubAuth();
+      // The 2 functions above will unsubscribe the subscriptions
+    }
   }, []);
 
   useEffect(() => {
