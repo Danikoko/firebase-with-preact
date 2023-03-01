@@ -1,10 +1,11 @@
 import { 
     collection,
     addDoc, 
-    getDocs,
-    getDoc,
+    updateDoc,
     deleteDoc,
     doc,
+    getDocs,
+    getDoc,
     query,
     where, 
     orderBy,
@@ -21,6 +22,7 @@ app;
 
 // Collection Ref
 const booksColRef = collection(db, 'books');
+const queryBooksByCreatedAt = query(booksColRef, orderBy('createdAt', 'desc'))
 
 // Query Collection Data
 // const queryByCreatedAt = query(booksColRef, orderBy('createdAt', 'desc'));
@@ -66,6 +68,27 @@ const addBook = async (payload: any) => {
     };
 };
 
+const updateBook = async ({ id, title, author }: any) => {
+    const docRef: any = doc(db, 'books', id);
+    let success: boolean = false;
+    let errorInfo: any;
+    await updateDoc(docRef, {
+        title,
+        author
+    })
+        .then(() => {
+            success = true;
+        })
+        .catch((err) => {
+            success = false;
+            errorInfo = err;
+        });
+    return {
+        success,
+        errorInfo
+    };
+}
+
 // Remove a Document
 const deleteBook = async (id: string) => {
     const docRef: any = doc(db, 'books', id);
@@ -87,6 +110,8 @@ const deleteBook = async (id: string) => {
 
 export {
     addBook,
+    updateBook,
     deleteBook,
-    booksColRef
+    booksColRef,
+    queryBooksByCreatedAt
 };

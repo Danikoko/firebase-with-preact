@@ -4,6 +4,9 @@ import {
 } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { firebaseConstants } from "../constants";
+import {
+    getAuth
+} from 'firebase/auth';
 
 const {
     API_KEY,
@@ -34,8 +37,10 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Services
 const db = getFirestore();
+const auth = getAuth();
 
 export {
     app,
-    db
+    db,
+    auth
 };
