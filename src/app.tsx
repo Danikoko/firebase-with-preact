@@ -94,8 +94,10 @@ export function App() {
                 author: '',
             }
         );
-        setAuthorForUpdate(value.author);
-        setTitleForUpdate(value.title);
+        if (value) {
+            setAuthorForUpdate(value.author);
+            setTitleForUpdate(value.title);
+        }
     };
 
     //booksColRef
